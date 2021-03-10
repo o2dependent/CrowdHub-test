@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 export default function Header({
@@ -15,6 +15,14 @@ export default function Header({
 	// --- hooks ---
 	// state
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	// use effect
+	useEffect(() => {
+		if (isModalOpen) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = '';
+		}
+	}, [isModalOpen]);
 
 	return (
 		<>
@@ -22,10 +30,17 @@ export default function Header({
 				<Modal.Container>
 					<Modal.Card>
 						<Modal.Header>
-							<p>Select a filter</p>
+							<strong>Select a filter</strong>
 							<p onClick={() => setIsModalOpen(false)}>X</p>
 						</Modal.Header>
-						<Modal.Button onClick={() => setFilters('')}>None</Modal.Button>
+						<Modal.Button
+							onClick={() => {
+								setFilters('');
+								setIsModalOpen(false);
+							}}
+						>
+							None
+						</Modal.Button>
 						{tags.map((tag) => (
 							<Modal.Button
 								onClick={() => {
