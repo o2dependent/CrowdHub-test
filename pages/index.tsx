@@ -180,7 +180,7 @@ const Card = {
 		align-items: center;
 	`,
 	LearnMore: styled.a`
-		color: #ecad16;
+		color: #f05625;
 		font-size: 1rem;
 	`,
 	Icon: styled.img`
