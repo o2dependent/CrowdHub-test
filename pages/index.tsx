@@ -181,7 +181,13 @@ const Card = {
 	`,
 	LearnMore: styled.a`
 		color: #f05625;
-		font-size: 1rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		font-style: italic;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 0.25rem;
 	`,
 	Icon: styled.img`
 		width: 1rem;
