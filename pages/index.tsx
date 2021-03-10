@@ -33,7 +33,6 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 export default function Home({ serverContent }: { serverContent: any[] }) {
-	console.log(serverContent);
 	// --- hooks ---
 	const [content] = useState<any[]>(serverContent); // content array
 	const [displayContent, setDisplayContent] = useState<any[]>(serverContent); // content that will be displayed
