@@ -32,50 +32,41 @@ import getImageURL from '../utils/getImageURL';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-export default function Home() {
+export default function Home({ serverContent }: { serverContent: any[] }) {
+	console.log(serverContent);
 	// --- hooks ---
-	const [content, setContent] = useState([]); // content array
-	const [displayContent, setDisplayContent] = useState([]); // content that will be displayed
+	const [content] = useState<any[]>(serverContent); // content array
+	const [displayContent, setDisplayContent] = useState<any[]>(serverContent); // content that will be displayed
 	const [tags, setTags] = useState<string[]>([]);
 	const [dateRange, setDateRange] = useState<
 		{ start: string; end: string } | undefined
 	>(undefined); // date range
-	const [filters, setFilters] = useState(''); // array of filters applied
+	const [filters, setFilters] = useState(''); // filters applied
 	// --- data fetching ---
 	useEffect(() => {
-		fetch(
-			'http://hardingdevelopment.nexisit.net/harding_api/api_event_search.php?page_num=0&per_page=20&buckets=Volunteering&timezone=25200&app_server_version=3.2&app_version=2&app_build=1&user_id=2&token=70aedda35dca9c192ef551c9f7b570e0&salt=309a9bea4d2695656e83f4fe7b340ee0&app=1&version=3.2'
-		)
-			.then((res) => res.json())
-			.then((d) => {
-				console.log(d.content);
-				let newTagsSet = new Set<string>();
-				d.content.forEach((i: { tags: { tag_name: string }[] }) =>
-					i?.tags?.forEach((tag) => newTagsSet.add(tag?.tag_name))
-				);
-				setTags(Array.from(newTagsSet));
-				const dates = d.content
-					.map((item: { content_date: string; content_date_end: string }) => {
-						return {
-							start: new Date(item.content_date),
-							end: new Date(item.content_date_end),
-						};
-					})
-					.sort(
-						(a: { start: any; end: any }, b: { start: any; end: any }) =>
-							b.start - a.start
-					);
-				const oldestDate = dates[dates.length - 1].start;
-				const newestDate = dates[0].end;
-				setDateRange({
-					start: `${oldestDate.getMonth() + 1}/${oldestDate.getFullYear()}`,
-					end: `${newestDate.getMonth() + 1}/${newestDate.getFullYear()}`,
-				});
-				// ${oldestDate.getDate()} use this if showing the specific day is required
-				setContent(d.content);
-				setDisplayContent(d.content);
-			});
-	}, []);
+		let newTagsSet = new Set<string>();
+		serverContent.forEach((i: { tags: { tag_name: string }[] }) =>
+			i?.tags?.forEach((tag) => newTagsSet.add(tag?.tag_name))
+		);
+		setTags(Array.from(newTagsSet));
+		const dates = serverContent
+			.map((item: { content_date: string; content_date_end: string }) => {
+				return {
+					start: new Date(item.content_date),
+					end: new Date(item.content_date_end),
+				};
+			})
+			.sort(
+				(a: { start: any; end: any }, b: { start: any; end: any }) =>
+					b.start - a.start
+			);
+		const oldestDate = dates[dates.length - 1].start;
+		const newestDate = dates[0].end;
+		setDateRange({
+			start: `${oldestDate.getMonth() + 1}/${oldestDate.getFullYear()}`,
+			end: `${newestDate.getMonth() + 1}/${newestDate.getFullYear()}`,
+		});
+	}, [serverContent]);
 
 	useEffect(() => {
 		if (filters.length > 0) {
@@ -198,3 +189,19 @@ const Card = {
 		height: 1rem;
 	`,
 };
+
+export async function getStaticProps() {
+	let serverContent;
+	await fetch(
+		'http://hardingdevelopment.nexisit.net/harding_api/api_event_search.php?page_num=0&per_page=20&buckets=Volunteering&timezone=25200&app_server_version=3.2&app_version=2&app_build=1&user_id=2&token=70aedda35dca9c192ef551c9f7b570e0&salt=309a9bea4d2695656e83f4fe7b340ee0&app=1&version=3.2'
+	)
+		.then((res) => res.json())
+		.then((d) => {
+			serverContent = d.content;
+		});
+	return {
+		props: {
+			serverContent,
+		}, // will be passed to the page component as props
+	};
+}
