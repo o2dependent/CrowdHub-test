@@ -35,10 +35,12 @@ import Footer from '../components/Footer';
 export default function Home() {
 	// --- hooks ---
 	const [content, setContent] = useState([]); // content array
+	const [displayContent, setDisplayContent] = useState([]); // content that will be displayed
+	const [tags, setTags] = useState<string[]>([]);
 	const [dateRange, setDateRange] = useState<
 		{ start: string; end: string } | undefined
-	>(undefined);
-	const [filters, setFilters] = useState([]); // array of filters applied
+	>(undefined); // date range
+	const [filters, setFilters] = useState(''); // array of filters applied
 	// --- data fetching ---
 	useEffect(() => {
 		fetch(
@@ -47,14 +49,22 @@ export default function Home() {
 			.then((res) => res.json())
 			.then((d) => {
 				console.log(d.content);
+				let newTagsSet = new Set<string>();
+				d.content.forEach((i: { tags: { tag_name: string }[] }) =>
+					i?.tags?.forEach((tag) => newTagsSet.add(tag?.tag_name))
+				);
+				setTags(Array.from(newTagsSet));
 				const dates = d.content
-					.map((item) => {
+					.map((item: { content_date: string; content_date_end: string }) => {
 						return {
 							start: new Date(item.content_date),
 							end: new Date(item.content_date_end),
 						};
 					})
-					.sort((a, b) => b.start - a.start);
+					.sort(
+						(a: { start: any; end: any }, b: { start: any; end: any }) =>
+							b.start - a.start
+					);
 				const oldestDate = dates[dates.length - 1].start;
 				const newestDate = dates[0].end;
 				setDateRange({
@@ -63,8 +73,24 @@ export default function Home() {
 				});
 				// ${oldestDate.getDate()} use this if showing the specific day is required
 				setContent(d.content);
+				setDisplayContent(d.content);
 			});
 	}, []);
+
+	useEffect(() => {
+		if (filters.length > 0) {
+			const newDisplayContent = content.filter(
+				(item: { tags: { tag_name: string }[] }) => {
+					// check if filters are in or out
+					const tag_names = item?.tags?.map((tag) => tag?.tag_name);
+					return tag_names.includes(filters);
+				}
+			);
+			setDisplayContent(newDisplayContent);
+		} else {
+			setDisplayContent(content);
+		}
+	}, [filters]);
 
 	return (
 		<div>
@@ -72,11 +98,16 @@ export default function Home() {
 				<title>Ethan Olsen's Crowd Hub site</title>
 				<link rel='icon' href='/favicon.ico' />
 			</Head>
-			<Header dateRange={dateRange} />
+			<Header
+				tags={tags}
+				dateRange={dateRange}
+				setFilters={setFilters}
+				filters={filters}
+			/>
 			<Footer />
 			<Main>
-				{content.length > 0 &&
-					content.map((item: I_ContentItem) => (
+				{displayContent.length > 0 &&
+					displayContent.map((item: I_ContentItem) => (
 						<Card.Body>
 							<Card.Header>
 								<Card.Title>{item?.content_name}</Card.Title>
@@ -88,6 +119,15 @@ export default function Home() {
 							<Card.Description>
 								{item?.content_social_description}
 							</Card.Description>
+							<Card.Footer>
+								<Card.BoldItalic>
+									{item?.content_date_literal_range}
+								</Card.BoldItalic>
+								<Card.LearnMore>
+									<Card.Icon src='NavigationIcon_Volunteer_Color.png' /> Learn
+									More
+								</Card.LearnMore>
+							</Card.Footer>
 						</Card.Body>
 					))}
 			</Main>
@@ -100,12 +140,14 @@ interface I_ContentItem {
 	content_image: string;
 	tags: { tag_name: string }[];
 	content_name: string;
+	content_date_literal_range: string;
 }
 
 // --- styled components ---
 const Main = styled.main`
 	background-color: #c4c4c4;
 	padding-top: 0.75rem;
+	padding-bottom: 4.5rem;
 `;
 
 const Card = {
@@ -143,5 +185,16 @@ const Card = {
 	`,
 	Footer: styled.div`
 		width: 100%;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	`,
+	LearnMore: styled.a`
+		color: #ecad16;
+		font-size: 1rem;
+	`,
+	Icon: styled.img`
+		width: 1rem;
+		height: 1rem;
 	`,
 };
