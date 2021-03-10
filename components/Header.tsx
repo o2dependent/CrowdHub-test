@@ -168,6 +168,7 @@ const Svg = styled.svg`
 
 const Modal = {
 	Container: styled.div`
+		z-index: 100;
 		display: flex;
 		justify-content: center;
 		align-items: center;
