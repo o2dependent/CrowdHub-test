@@ -189,14 +189,33 @@ const Card = {
 	`,
 };
 
-export async function getStaticProps() {
+export async function getServerSideProps() {
 	let serverContent;
 	await fetch(
 		'http://hardingdevelopment.nexisit.net/harding_api/api_event_search.php?page_num=0&per_page=20&buckets=Volunteering&timezone=25200&app_server_version=3.2&app_version=2&app_build=1&user_id=2&token=70aedda35dca9c192ef551c9f7b570e0&salt=309a9bea4d2695656e83f4fe7b340ee0&app=1&version=3.2'
 	)
 		.then((res) => res.json())
 		.then((d) => {
-			serverContent = d.content;
+			serverContent = d.content.map(
+				(item: {
+					content_date_literal_range: string;
+					content_date: string;
+				}) => {
+					let split = item?.content_date_literal_range.split(',');
+					if (split[1].includes('-')) {
+						split[1] = new Date(item?.content_date).getFullYear().toString();
+						console.log(split.join(', '));
+						const newItem = {
+							...item,
+							content_date_literal_range: split.join(', '),
+						};
+						console.log(newItem.content_date_literal_range);
+						return newItem;
+					} else {
+						return item;
+					}
+				}
+			);
 		});
 	return {
 		props: {
