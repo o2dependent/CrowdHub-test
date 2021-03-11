@@ -196,14 +196,20 @@ const Modal = {
 	`,
 	Card: styled.div`
 		overflow: hidden;
-		border-radius: 0.25rem;
-		max-width: 18rem;
+		border-radius: 0.5rem;
+		max-width: 90%;
 		width: 100%;
 		height: fit-content;
 		background-color: white;
 		box-shadow: 0px 0px 5px 5px #00000020;
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		padding: 0.5rem;
+		max-height: 90%;
 	`,
 	Header: styled.div`
+		width: 100%;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -212,8 +218,8 @@ const Modal = {
 	Button: styled.button`
 		width: 100%;
 		height: 2rem;
-		border: none;
-		border-top: 1px solid black;
-		background-color: white;
+		border-radius: 9999px;
+		border: 1px solid black;
+		background-color: #fff;
 	`,
 };
