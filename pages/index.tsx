@@ -28,43 +28,51 @@ export default function Home({ serverContent }: { serverContent: any[] }) {
 	>(undefined); // date range
 	const [filters, setFilters] = useState(''); // filters applied
 	// --- data fetching ---
-	useEffect(() => { // on component mount
+	useEffect(() => {
+		// on component mount
 		// * get tags *
 		let newTagsSet = new Set<string>(); // Set for eliminating duplicates
-		serverContent.forEach((i: I_ContentItem) => // iterate over content and get tags
-			i?.tags?.forEach((tag) => newTagsSet.add(tag?.tag_name))
-		);
+		serverContent.forEach((
+			i: I_ContentItem // iterate over content and get tags
+		) => i?.tags?.forEach((tag) => newTagsSet.add(tag?.tag_name)));
 		setTags(Array.from(newTagsSet)); // set tags to be an Array from tags Set
 		// * get date range *
 		const dates = serverContent // Array of all dates from content
 			.map((item: I_ContentItem) => {
-				return { // find start and end dates | create date object from strings
+				return {
+					// find start and end dates | create date object from strings
 					start: new Date(item.content_date),
 					end: new Date(item.content_date_end),
 				};
 			})
-			.sort( // sort dates from newest to oldest
+			.sort(
+				// sort dates from newest to oldest
 				(a: { start: any; end: any }, b: { start: any; end: any }) =>
 					b.start - a.start
 			);
 		const oldestDate = dates[dates.length - 1].start; // store oldest date
 		const newestDate = dates[0].end; // store newest date
-		setDateRange({ // create date range string from dates
+		setDateRange({
+			// create date range string from dates
 			start: `${oldestDate.getMonth() + 1}/${oldestDate.getFullYear()}`,
 			end: `${newestDate.getMonth() + 1}/${newestDate.getFullYear()}`,
 		});
 	}, [serverContent]);
 
-	useEffect(() => { // set filters on filter change
-		if (filters.length > 0) { // check if filter is not an empty string
-			const newDisplayContent = content.filter( // filter content
-				(item: I_ContentItem }) => {
+	useEffect(() => {
+		// set filters on filter change
+		if (filters.length > 0) {
+			// check if filter is not an empty string
+			const newDisplayContent = content.filter(
+				// filter content
+				(item: I_ContentItem) => {
 					const tag_names = item?.tags?.map((tag) => tag?.tag_name); // extract tag names from item
 					return tag_names.includes(filters); // check items tags include filter
 				}
 			);
 			setDisplayContent(newDisplayContent); // set display content to filtered content
-		} else { // if empty string
+		} else {
+			// if empty string
 			setDisplayContent(content); // set display content to all available content
 		}
 	}, [filters]);
@@ -119,7 +127,7 @@ interface I_ContentItem {
 	content_name: string;
 	content_date_literal_range: string;
 	content_date: string;
-	content_date_end: string 
+	content_date_end: string;
 }
 
 // --- styled components ---
