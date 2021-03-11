@@ -11,71 +11,28 @@ tags (sorting)
 author (use for event page view)
 attendees (use for event page view)
 */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Head from 'next/head';
 import styled from 'styled-components';
 import getImageURL from '../utils/getImageURL';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import useServerContent from '../hooks/useServerContent';
+import useContentFilter from '../hooks/useContentFilter';
 
-export default function Home({ serverContent }: { serverContent: any[] }) {
+export default function Home({
+	serverContent,
+}: {
+	serverContent: I_ContentItem[];
+}) {
+	// --- variables ---
+	const content: I_ContentItem[] = serverContent; // content array
 	// --- hooks ---
-	const [content] = useState<any[]>(serverContent); // content array
 	const [displayContent, setDisplayContent] = useState<any[]>(serverContent); // content that will be displayed
-	const [tags, setTags] = useState<string[]>([]); // store tags from content
-	const [dateRange, setDateRange] = useState<
-		{ start: string; end: string } | undefined
-	>(undefined); // date range
-	const [filters, setFilters] = useState(''); // filters applied
-	// --- data fetching ---
-	useEffect(() => {
-		// on component mount
-		// * get tags *
-		let newTagsSet = new Set<string>(); // Set for eliminating duplicates
-		serverContent.forEach((
-			i: I_ContentItem // iterate over content and get tags
-		) => i?.tags?.forEach((tag) => newTagsSet.add(tag?.tag_name)));
-		setTags(Array.from(newTagsSet)); // set tags to be an Array from tags Set
-		// * get date range *
-		const dates = serverContent // Array of all dates from content
-			.map((item: I_ContentItem) => {
-				return {
-					// find start and end dates | create date object from strings
-					start: new Date(item.content_date),
-					end: new Date(item.content_date_end),
-				};
-			})
-			.sort(
-				// sort dates from newest to oldest
-				(a: { start: any; end: any }, b: { start: any; end: any }) =>
-					b.start - a.start
-			);
-		const oldestDate = dates[dates.length - 1].start; // store oldest date
-		const newestDate = dates[0].end; // store newest date
-		setDateRange({
-			// create date range string from dates
-			start: `${oldestDate.getMonth() + 1}/${oldestDate.getFullYear()}`,
-			end: `${newestDate.getMonth() + 1}/${newestDate.getFullYear()}`,
-		});
-	}, [serverContent]);
-
-	useEffect(() => {
-		// set filters on filter change
-		if (filters.length > 0) {
-			// check if filter is not an empty string
-			const newDisplayContent = content.filter(
-				// filter content
-				(item: I_ContentItem) => {
-					const tag_names = item?.tags?.map((tag) => tag?.tag_name); // extract tag names from item
-					return tag_names.includes(filters); // check items tags include filter
-				}
-			);
-			setDisplayContent(newDisplayContent); // set display content to filtered content
-		} else {
-			// if empty string
-			setDisplayContent(content); // set display content to all available content
-		}
-	}, [filters]);
+	// use server content
+	const [tags, dateRange] = useServerContent(serverContent);
+	// use content filter
+	const [filters, setFilters] = useContentFilter(content, setDisplayContent);
 
 	return (
 		<div>
@@ -120,7 +77,7 @@ export default function Home({ serverContent }: { serverContent: any[] }) {
 	);
 }
 
-interface I_ContentItem {
+export interface I_ContentItem {
 	content_social_description: string;
 	content_image: string;
 	tags: { tag_name: string }[];
