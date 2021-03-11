@@ -14,12 +14,15 @@ export default function Header({
 }) {
 	// --- hooks ---
 	// state
-	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isModalOpen, setIsModalOpen] = useState(false); // modal state
 	// use effect
 	useEffect(() => {
+		// lock scroll when modal is open
 		if (isModalOpen) {
+			// lock scrolling
 			document.body.style.overflow = 'hidden';
 		} else {
+			// unlock scrolling
 			document.body.style.overflow = '';
 		}
 	}, [isModalOpen]);

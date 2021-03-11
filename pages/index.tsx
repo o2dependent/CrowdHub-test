@@ -1,17 +1,3 @@
-// useless data
-/*
-campaign
-content_id (used for keys?)
-content_author
-content_lat
-content_long
-content_icon (mostly the same as content_image with some data missing)
-children
-content_featured
-meta_data
-user_commented
-*/
-
 // useful data
 /*
 actions (allows for event specific actions)
@@ -36,49 +22,50 @@ export default function Home({ serverContent }: { serverContent: any[] }) {
 	// --- hooks ---
 	const [content] = useState<any[]>(serverContent); // content array
 	const [displayContent, setDisplayContent] = useState<any[]>(serverContent); // content that will be displayed
-	const [tags, setTags] = useState<string[]>([]);
+	const [tags, setTags] = useState<string[]>([]); // store tags from content
 	const [dateRange, setDateRange] = useState<
 		{ start: string; end: string } | undefined
 	>(undefined); // date range
 	const [filters, setFilters] = useState(''); // filters applied
 	// --- data fetching ---
-	useEffect(() => {
-		let newTagsSet = new Set<string>();
-		serverContent.forEach((i: { tags: { tag_name: string }[] }) =>
+	useEffect(() => { // on component mount
+		// * get tags *
+		let newTagsSet = new Set<string>(); // Set for eliminating duplicates
+		serverContent.forEach((i: I_ContentItem) => // iterate over content and get tags
 			i?.tags?.forEach((tag) => newTagsSet.add(tag?.tag_name))
 		);
-		setTags(Array.from(newTagsSet));
-		const dates = serverContent
-			.map((item: { content_date: string; content_date_end: string }) => {
-				return {
+		setTags(Array.from(newTagsSet)); // set tags to be an Array from tags Set
+		// * get date range *
+		const dates = serverContent // Array of all dates from content
+			.map((item: I_ContentItem) => {
+				return { // find start and end dates | create date object from strings
 					start: new Date(item.content_date),
 					end: new Date(item.content_date_end),
 				};
 			})
-			.sort(
+			.sort( // sort dates from newest to oldest
 				(a: { start: any; end: any }, b: { start: any; end: any }) =>
 					b.start - a.start
 			);
-		const oldestDate = dates[dates.length - 1].start;
-		const newestDate = dates[0].end;
-		setDateRange({
+		const oldestDate = dates[dates.length - 1].start; // store oldest date
+		const newestDate = dates[0].end; // store newest date
+		setDateRange({ // create date range string from dates
 			start: `${oldestDate.getMonth() + 1}/${oldestDate.getFullYear()}`,
 			end: `${newestDate.getMonth() + 1}/${newestDate.getFullYear()}`,
 		});
 	}, [serverContent]);
 
-	useEffect(() => {
-		if (filters.length > 0) {
-			const newDisplayContent = content.filter(
-				(item: { tags: { tag_name: string }[] }) => {
-					// check if filters are in or out
-					const tag_names = item?.tags?.map((tag) => tag?.tag_name);
-					return tag_names.includes(filters);
+	useEffect(() => { // set filters on filter change
+		if (filters.length > 0) { // check if filter is not an empty string
+			const newDisplayContent = content.filter( // filter content
+				(item: I_ContentItem }) => {
+					const tag_names = item?.tags?.map((tag) => tag?.tag_name); // extract tag names from item
+					return tag_names.includes(filters); // check items tags include filter
 				}
 			);
-			setDisplayContent(newDisplayContent);
-		} else {
-			setDisplayContent(content);
+			setDisplayContent(newDisplayContent); // set display content to filtered content
+		} else { // if empty string
+			setDisplayContent(content); // set display content to all available content
 		}
 	}, [filters]);
 
@@ -131,6 +118,8 @@ interface I_ContentItem {
 	tags: { tag_name: string }[];
 	content_name: string;
 	content_date_literal_range: string;
+	content_date: string;
+	content_date_end: string 
 }
 
 // --- styled components ---
